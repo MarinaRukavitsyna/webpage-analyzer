@@ -1,0 +1,59 @@
+openapi: 3.0.0
+info:
+  title: Web Page Analyzer API
+  version: 1.0.0
+paths:
+  /analyze:
+    post:
+      summary: Analyze a web page
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+      responses:
+        '200':
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  htmlVersion:
+                    type: string
+                  pageTitle:
+                    type: string
+                  headings:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                  internalLinks:
+                    type: integer
+                  externalLinks:
+                    type: integer
+                  inaccessibleLinks:
+                    type: integer
+                  containsLoginForm:
+                    type: boolean
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
