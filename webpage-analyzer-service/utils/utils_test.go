@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -24,6 +26,95 @@ func equalMaps(a, b map[string]int) bool {
 		}
 	}
 	return true
+}
+
+// Table-driven tests for isExternalLink
+func TestIsExternalLink(t *testing.T) {
+	baseURL, _ := url.Parse("https://www.example.com")
+
+	tests := []struct {
+		name     string
+		link     string
+		expected bool
+	}{
+		{
+			name:     "RelativeLink",
+			link:     "/internal-link",
+			expected: false,
+		},
+		{
+			name:     "SameHostAbsoluteLink",
+			link:     "https://www.example.com/internal-link",
+			expected: false,
+		},
+		{
+			name:     "DifferentHostLink",
+			link:     "https://www.google.com",
+			expected: true,
+		},
+		{
+			name:     "DifferentHostWithPathLink",
+			link:     "https://www.example.org/path",
+			expected: true,
+		},
+		{
+			name:     "EmptyLink",
+			link:     "",
+			expected: false,
+		},
+		{
+			name:     "InvalidLink",
+			link:     ":invalid-link",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := isExternalLink(tt.link, baseURL)
+			if got != tt.expected {
+				t.Errorf("isExternalLink(%q, %v) = %v, want %v", tt.link, baseURL, got, tt.expected)
+			}
+		})
+	}
+}
+
+// Table-driven tests for isAccessible
+func TestIsAccessible(t *testing.T) {
+	tests := []struct {
+		name     string
+		link     string
+		expected bool
+	}{
+		{
+			name:     "AccessibleLink",
+			link:     "https://www.example.com",
+			expected: true,
+		},
+		{
+			name:     "InaccessibleLink",
+			link:     "/inaccessible",
+			expected: false,
+		},
+		{
+			name:     "ServerError",
+			link:     "/server-error",
+			expected: false,
+		},
+		{
+			name:     "Timeout",
+			link:     "/timeout",
+			expected: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := isAccessible(tt.link)
+			if got != tt.expected {
+				t.Errorf("isAccessible(%q) = %v, want %v", tt.link, got, tt.expected)
+			}
+		})
+	}
 }
 
 // Table-driven tests for getHeadings
@@ -450,6 +541,120 @@ func TestGetHTMLVersion(t *testing.T) {
 			got := getHTMLVersion(doc)
 			if got != tt.expected {
 				t.Errorf("getHTMLVersion() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+// Table-driven tests for AnalyzeURL
+func TestAnalyzeURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		html     string
+		expected AnalysisResult
+	}{
+		{
+			name: "Test Page Analyze",
+			html: `<!DOCTYPE html><html><head><title>Test Page</title></head><body>
+				<h1>Heading 1</h1>
+				<h2>Heading 2</h2>				
+				<a href="https://www.example.com/">External Link</a>
+				<form><input type="text" name="username"><input type="password" name="password"></form>
+			</body></html>`,
+			expected: AnalysisResult{
+				HTMLVersion:       "HTML5",
+				PageTitle:         "Test Page",
+				Headings:          map[string]int{"h1": 1, "h2": 1},
+				InternalLinks:     0,
+				ExternalLinks:     1,
+				InaccessibleLinks: 0,
+				ContainsLoginForm: true,
+			},
+		},
+		{
+			name: "No Headings Analyze",
+			html: `<!DOCTYPE html><html><head><title>No Headings</title></head><body>
+				<a href="/internal">Internal Link</a>
+			</body></html>`,
+			expected: AnalysisResult{
+				HTMLVersion:       "HTML5",
+				PageTitle:         "No Headings",
+				Headings:          map[string]int{},
+				InternalLinks:     1,
+				ExternalLinks:     0,
+				InaccessibleLinks: 1,
+				ContainsLoginForm: false,
+			},
+		},
+		{
+			name: "Inaccessible Link Analyze",
+			html: `<!DOCTYPE html><html><head><title>Inaccessible Link</title></head><body>
+				<a href="https://www.nonexistentwebsite.com">Broken Link</a>
+			</body></html>`,
+			expected: AnalysisResult{
+				HTMLVersion:       "HTML5",
+				PageTitle:         "Inaccessible Link",
+				Headings:          map[string]int{},
+				InternalLinks:     0,
+				ExternalLinks:     1,
+				InaccessibleLinks: 1,
+				ContainsLoginForm: false,
+			},
+		},
+		{
+			name: "Title Strict Analyze",
+			html: `<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+				<html><head><title>Title Strict</title></head><body>
+				<h1>Heading 1</h1>
+				<h2>Heading 2</h2>
+			</body></html>`,
+			expected: AnalysisResult{
+				HTMLVersion:       "HTML 4.01 Strict",
+				PageTitle:         "Title Strict",
+				Headings:          map[string]int{"h1": 1, "h2": 1},
+				InternalLinks:     0,
+				ExternalLinks:     0,
+				InaccessibleLinks: 0,
+				ContainsLoginForm: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create a mock server
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Write([]byte(tt.html))
+			}))
+			defer ts.Close()
+
+			urlStr := ts.URL
+
+			got, err := AnalyzeURL(urlStr)
+			if err != nil {
+				t.Fatalf("AnalyzeURL() error = %v", err)
+			}
+
+			if got.HTMLVersion != tt.expected.HTMLVersion {
+				t.Errorf("HTMLVersion = %v, want %v", got.HTMLVersion, tt.expected.HTMLVersion)
+			}
+			if got.PageTitle != tt.expected.PageTitle {
+				t.Errorf("PageTitle = %v, want %v", got.PageTitle, tt.expected.PageTitle)
+			}
+			if !equalMaps(got.Headings, tt.expected.Headings) {
+				t.Errorf("Headings = %v, want %v", got.Headings, tt.expected.Headings)
+			}
+			if got.InternalLinks != tt.expected.InternalLinks {
+				t.Errorf("InternalLinks = %v, want %v", got.InternalLinks, tt.expected.InternalLinks)
+			}
+			if got.ExternalLinks != tt.expected.ExternalLinks {
+				t.Errorf("ExternalLinks = %v, want %v", got.ExternalLinks, tt.expected.ExternalLinks)
+			}
+			if got.InaccessibleLinks != tt.expected.InaccessibleLinks {
+				t.Errorf("InaccessibleLinks = %v, want %v", got.InaccessibleLinks, tt.expected.InaccessibleLinks)
+			}
+			if got.ContainsLoginForm != tt.expected.ContainsLoginForm {
+				t.Errorf("ContainsLoginForm = %v, want %v", got.ContainsLoginForm, tt.expected.ContainsLoginForm)
 			}
 		})
 	}
