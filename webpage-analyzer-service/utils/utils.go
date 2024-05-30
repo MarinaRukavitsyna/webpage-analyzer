@@ -20,6 +20,9 @@ type AnalysisResult struct {
 	IsContainLoginForm   bool
 }
 
+// AnalyzeURLFunc defines the type for the function used to analyze URLs
+type AnalyzeURLFunc func(string) (AnalysisResult, error)
+
 func AnalyzeURL(urlStr string) (AnalysisResult, error) {
 	resp, err := http.Get(urlStr)
 	if err != nil {
