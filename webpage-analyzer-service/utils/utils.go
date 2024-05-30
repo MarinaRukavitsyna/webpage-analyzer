@@ -5,18 +5,19 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"golang.org/x/net/html"
 )
 
 type AnalysisResult struct {
-	HTMLVersion       string
-	PageTitle         string
-	Headings          map[string]int
-	InternalLinks     int
-	ExternalLinks     int
-	InaccessibleLinks int
-	ContainsLoginForm bool
+	HTMLVersion          string
+	PageTitle            string
+	Headings             map[string]int
+	NumInternalLinks     int
+	NumExternalLinks     int
+	NumInaccessibleLinks int
+	IsContainLoginForm   bool
 }
 
 func AnalyzeURL(urlStr string) (AnalysisResult, error) {
@@ -41,15 +42,81 @@ func AnalyzeURL(urlStr string) (AnalysisResult, error) {
 		return AnalysisResult{}, err
 	}
 
-	result := AnalysisResult{
-		HTMLVersion:       getHTMLVersion(doc),
-		PageTitle:         getPageTitle(doc),
-		Headings:          getHeadings(doc),
-		InternalLinks:     getNumInternalLinks(doc, baseURL),
-		ExternalLinks:     getNumExternalLinks(doc, baseURL),
-		InaccessibleLinks: getNumInaccessibleLinks(doc),
-		ContainsLoginForm: isContainLoginForm(doc),
-	}
+	var wg sync.WaitGroup
+	result := AnalysisResult{}
+	mu := sync.Mutex{}
+
+	// Goroutine for HTML version
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		htmlVersion := getHTMLVersion(doc)
+		mu.Lock()
+		result.HTMLVersion = htmlVersion
+		mu.Unlock()
+	}()
+
+	// Goroutine for page title
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		pageTitle := getPageTitle(doc)
+		mu.Lock()
+		result.PageTitle = pageTitle
+		mu.Unlock()
+	}()
+
+	// Goroutine for headings
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		headings := getHeadings(doc)
+		mu.Lock()
+		result.Headings = headings
+		mu.Unlock()
+	}()
+
+	// Goroutine for internal links
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		internalLinks := getNumInternalLinks(doc, baseURL)
+		mu.Lock()
+		result.NumInternalLinks = internalLinks
+		mu.Unlock()
+	}()
+
+	// Goroutine for external links
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		externalLinks := getNumExternalLinks(doc, baseURL)
+		mu.Lock()
+		result.NumExternalLinks = externalLinks
+		mu.Unlock()
+	}()
+
+	// Goroutine for inaccessible links
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		inaccessibleLinks := getNumInaccessibleLinks(doc)
+		mu.Lock()
+		result.NumInaccessibleLinks = inaccessibleLinks
+		mu.Unlock()
+	}()
+
+	// Goroutine for login form
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		containsLoginForm := isContainLoginForm(doc)
+		mu.Lock()
+		result.IsContainLoginForm = containsLoginForm
+		mu.Unlock()
+	}()
+
+	wg.Wait()
 
 	return result, nil
 }

@@ -562,13 +562,13 @@ func TestAnalyzeURL(t *testing.T) {
 				<form><input type="text" name="username"><input type="password" name="password"></form>
 			</body></html>`,
 			expected: AnalysisResult{
-				HTMLVersion:       "HTML5",
-				PageTitle:         "Test Page",
-				Headings:          map[string]int{"h1": 1, "h2": 1},
-				InternalLinks:     0,
-				ExternalLinks:     1,
-				InaccessibleLinks: 0,
-				ContainsLoginForm: true,
+				HTMLVersion:          "HTML5",
+				PageTitle:            "Test Page",
+				Headings:             map[string]int{"h1": 1, "h2": 1},
+				NumInternalLinks:     0,
+				NumExternalLinks:     1,
+				NumInaccessibleLinks: 0,
+				IsContainLoginForm:   true,
 			},
 		},
 		{
@@ -577,13 +577,13 @@ func TestAnalyzeURL(t *testing.T) {
 				<a href="/internal">Internal Link</a>
 			</body></html>`,
 			expected: AnalysisResult{
-				HTMLVersion:       "HTML5",
-				PageTitle:         "No Headings",
-				Headings:          map[string]int{},
-				InternalLinks:     1,
-				ExternalLinks:     0,
-				InaccessibleLinks: 1,
-				ContainsLoginForm: false,
+				HTMLVersion:          "HTML5",
+				PageTitle:            "No Headings",
+				Headings:             map[string]int{},
+				NumInternalLinks:     1,
+				NumExternalLinks:     0,
+				NumInaccessibleLinks: 1,
+				IsContainLoginForm:   false,
 			},
 		},
 		{
@@ -592,13 +592,13 @@ func TestAnalyzeURL(t *testing.T) {
 				<a href="https://www.nonexistentwebsite.com">Broken Link</a>
 			</body></html>`,
 			expected: AnalysisResult{
-				HTMLVersion:       "HTML5",
-				PageTitle:         "Inaccessible Link",
-				Headings:          map[string]int{},
-				InternalLinks:     0,
-				ExternalLinks:     1,
-				InaccessibleLinks: 1,
-				ContainsLoginForm: false,
+				HTMLVersion:          "HTML5",
+				PageTitle:            "Inaccessible Link",
+				Headings:             map[string]int{},
+				NumInternalLinks:     0,
+				NumExternalLinks:     1,
+				NumInaccessibleLinks: 1,
+				IsContainLoginForm:   false,
 			},
 		},
 		{
@@ -609,13 +609,13 @@ func TestAnalyzeURL(t *testing.T) {
 				<h2>Heading 2</h2>
 			</body></html>`,
 			expected: AnalysisResult{
-				HTMLVersion:       "HTML 4.01 Strict",
-				PageTitle:         "Title Strict",
-				Headings:          map[string]int{"h1": 1, "h2": 1},
-				InternalLinks:     0,
-				ExternalLinks:     0,
-				InaccessibleLinks: 0,
-				ContainsLoginForm: false,
+				HTMLVersion:          "HTML 4.01 Strict",
+				PageTitle:            "Title Strict",
+				Headings:             map[string]int{"h1": 1, "h2": 1},
+				NumInternalLinks:     0,
+				NumExternalLinks:     0,
+				NumInaccessibleLinks: 0,
+				IsContainLoginForm:   false,
 			},
 		},
 	}
@@ -644,17 +644,17 @@ func TestAnalyzeURL(t *testing.T) {
 			if !equalMaps(got.Headings, tt.expected.Headings) {
 				t.Errorf("Headings = %v, want %v", got.Headings, tt.expected.Headings)
 			}
-			if got.InternalLinks != tt.expected.InternalLinks {
-				t.Errorf("InternalLinks = %v, want %v", got.InternalLinks, tt.expected.InternalLinks)
+			if got.NumInternalLinks != tt.expected.NumInternalLinks {
+				t.Errorf("InternalLinks = %v, want %v", got.NumInternalLinks, tt.expected.NumInternalLinks)
 			}
-			if got.ExternalLinks != tt.expected.ExternalLinks {
-				t.Errorf("ExternalLinks = %v, want %v", got.ExternalLinks, tt.expected.ExternalLinks)
+			if got.NumExternalLinks != tt.expected.NumExternalLinks {
+				t.Errorf("ExternalLinks = %v, want %v", got.NumExternalLinks, tt.expected.NumExternalLinks)
 			}
-			if got.InaccessibleLinks != tt.expected.InaccessibleLinks {
-				t.Errorf("InaccessibleLinks = %v, want %v", got.InaccessibleLinks, tt.expected.InaccessibleLinks)
+			if got.NumInaccessibleLinks != tt.expected.NumInaccessibleLinks {
+				t.Errorf("InaccessibleLinks = %v, want %v", got.NumInaccessibleLinks, tt.expected.NumInaccessibleLinks)
 			}
-			if got.ContainsLoginForm != tt.expected.ContainsLoginForm {
-				t.Errorf("ContainsLoginForm = %v, want %v", got.ContainsLoginForm, tt.expected.ContainsLoginForm)
+			if got.IsContainLoginForm != tt.expected.IsContainLoginForm {
+				t.Errorf("ContainsLoginForm = %v, want %v", got.IsContainLoginForm, tt.expected.IsContainLoginForm)
 			}
 		})
 	}
