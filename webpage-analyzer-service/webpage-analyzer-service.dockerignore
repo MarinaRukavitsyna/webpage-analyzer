@@ -1,0 +1,25 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output of the build
+bin/
+main
+
+# Dependency directories
+vendor/
+
+# Go specific
+*.log
+*.lock
+*.out
+
+# IDE specific
+.idea/
+*.iml
+*.ipr
+*.iws

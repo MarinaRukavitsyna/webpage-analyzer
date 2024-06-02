@@ -1,0 +1,12 @@
+services:
+
+  webpage-analyzer--service:
+    build:
+      context: ./../webpage-analyzer-service
+      dockerfile: ./../webpage-analyzer-service/webpage-analyzer-service.dockerfile
+    restart: always
+    ports:
+      - "8080:80"
+    deploy:
+      mode: replicated
+      replicas: 1
