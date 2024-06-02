@@ -5,12 +5,14 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"webpage-analyzer/cmd/api/analyzer"
 )
 
 type jsonResponse struct {
-	Error   bool   `json:"error"`
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
+	Error          bool                    `json:"error"`
+	Message        string                  `json:"message"`
+	Data           any                     `json:"data,omitempty"`
+	AnalysisResult analyzer.AnalysisResult `json:"analysisResult"`
 }
 
 // readJSON tries to read the body of a request and converts it into JSON

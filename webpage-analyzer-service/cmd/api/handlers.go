@@ -35,8 +35,9 @@ func (app *Config) Analyzer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload := jsonResponse{
-		Error:   false,
-		Message: result.HTMLVersion,
+		Error:          false,
+		Message:        "OK",
+		AnalysisResult: result,
 	}
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
