@@ -1,4 +1,4 @@
-package utils
+package analyzer
 
 import (
 	"net/http"
