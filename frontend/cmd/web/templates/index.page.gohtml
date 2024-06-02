@@ -11,29 +11,9 @@
                 <a id="analyzerBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Analyze</a>
             </div>
         </div>
-        <div class="row">
-            <div class="col">
-                {{if .}}
-                <h2>Analysis Result</h2>
-                <p><strong>HTML Version:</strong> {{.HTMLVersion}}</p>
-                <p><strong>Page Title:</strong> {{.PageTitle}}</p>
-                <p><strong>Headings:</strong></p>
-                <ul>
-                    {{range $key, $value := .Headings}}
-                    <li><strong>{{$key}}:</strong> {{$value}}</li>
-                    {{end}}
-                </ul>
-                <p><strong>Internal Links:</strong> {{.NumInternalLinks}}</p>
-                <p><strong>External Links:</strong> {{.NumExternalLinks}}</p>
-                <p><strong>Inaccessible Links:</strong> {{.NumInaccessibleLinks}}</p>
-                <p><strong>Contains Login Form:</strong> {{.IsContainLoginForm}}</p>
-                {{end}}
-            </div>
-        </div>
-
          <div class="row">
             <div class="col">
-                <h4 class="mt-5">Received</h4>
+                <h4 class="mt-5">Response from the analyzer service</h4>
                 <div class="mt-1" style="outline: 1px solid silver; padding: 2em;">
                     <pre id="received"><span class="text-muted">Nothing received yet...</span></pre>
                 </div>
@@ -47,7 +27,6 @@
 {{define "js"}}
     <script>
     let analyzerBtn = document.getElementById("analyzerBtn");
-    let output = document.getElementById("output");
     let url = document.getElementById("url");
     let recevied = document.getElementById("received");
     let loadingPanel = document.getElementById("loading");   
@@ -72,20 +51,33 @@
 
         fetch("http:\/\/localhost:8080", body)
         .then((response) => response.json())
-        .then((data) => {
-            received.innerHTML = JSON.stringify(data, undefined, 4);
+        .then((data) => {           
             loadingPanel.style.display = 'none';
             if (data.error) {
-                console.log(data.message);
+                received.innerHTML = "Error from the server: " + data.error;
             } else {
-                output.innerHTML += `<br><strong>Response from analyzer service</strong>: ${data.message}`;
+                received.innerHTML = formatResult(data.analysisResult);
             }
         })
-        .catch((error) => {
-            output.innerHTML += "<br><br>Erorr: " + error;
+         .catch((error) => {
+            received.innerHTML += "<br><br>Erorr: " + error;
             loadingPanel.style.display = 'none';
         })
     })
         
+    function formatResult(result) {
+            return `             
+                    <div>HTML Version: ${result.HTMLVersion}</div>               
+                    <div>Page Title: ${result.PageTitle}</div>             
+                    <div>Number of Headings: </div>
+                        <ul>
+                            ${Object.entries(result.Headings).map(([key, value]) => `<li>${key}: ${value}</li>`).join('')}
+                        </ul>
+                    <div>Number of Internal Links: ${result.NumInternalLinks}</div>                 
+                    <div>Number of External Links: ${result.NumExternalLinks}</div>               
+                    <div>Number of Inaccessible Links: ${result.NumInaccessibleLinks}</div>
+                    <div>Contains Login Form: ${result.IsContainLoginForm ? 'Yes' : 'No'}</div>              
+            `;
+        }
     </script>
 {{end}}
