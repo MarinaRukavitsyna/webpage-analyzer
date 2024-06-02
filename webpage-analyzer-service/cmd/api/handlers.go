@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"webpage-analyzer/cmd/api/analyzer"
@@ -16,26 +15,25 @@ func (app *Config) Analyzer(w http.ResponseWriter, r *http.Request) {
 
 	err := app.readJSON(w, r, &requestPayload)
 	if err != nil {
-		log.Println(err)
-		app.errorJSON(w, err)
-		http.Error(w, `{"error":"Invalid input"}`, http.StatusBadRequest)
+		app.errorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	parsedURL, err := url.ParseRequestURI(requestPayload.URL)
 	if err != nil {
-		http.Error(w, `{"error":"Invalid URL format"}`, http.StatusBadRequest)
+		app.errorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	result, err := analyzer.AnalyzeURL(parsedURL.String())
 	if err != nil {
-		http.Error(w, `{"error":"`+err.Error()+`"}`, http.StatusInternalServerError)
+		app.errorJSON(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	payload := jsonResponse{
 		Error:          false,
+		StatusCode:     http.StatusOK,
 		Message:        "OK",
 		AnalysisResult: result,
 	}

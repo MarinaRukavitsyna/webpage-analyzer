@@ -54,7 +54,7 @@
         .then((data) => {           
             loadingPanel.style.display = 'none';
             if (data.error) {
-                received.innerHTML = "Error from the server: " + data.error;
+                received.innerHTML = "Error from the server: " + data.message + ", error code: "  + data.statusCode;
             } else {
                 received.innerHTML = formatResult(data.analysisResult);
             }
