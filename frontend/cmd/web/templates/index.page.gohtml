@@ -7,7 +7,7 @@
                 <h1 class="mt-5">Webpage Analyzer</h1>
                 <hr>
                 <label for="url">Enter URL:</label>
-                <input type="text" id="url" name="url" style="width: 300pt;" required>
+                <input type="text" id="url" name="url" required>
                 <a id="analyzerBtn" class="btn btn-outline-secondary" href="javascript:void(0);">Analyze</a>
             </div>
         </div>
@@ -33,12 +33,6 @@
 
          <div class="row">
             <div class="col">
-                <h4 class="mt-5">Sent</h4>
-                <div class="mt-2" style="outline: 1px solid silver; padding: 2em;">
-                    <pre id="payload"><span class="text-muted">Nothing sent yet...</span></pre>
-                </div>
-            </div>
-            <div class="col">
                 <h4 class="mt-5">Received</h4>
                 <div class="mt-1" style="outline: 1px solid silver; padding: 2em;">
                     <pre id="received"><span class="text-muted">Nothing received yet...</span></pre>
@@ -46,6 +40,7 @@
             </div>
         </div>
 
+        <div id="loading">Waiting for result...</div>
     </div>
 {{end}}
 
@@ -54,10 +49,12 @@
     let analyzerBtn = document.getElementById("analyzerBtn");
     let output = document.getElementById("output");
     let url = document.getElementById("url");
-    let sent = document.getElementById("payload");
     let recevied = document.getElementById("received");
+    let loadingPanel = document.getElementById("loading");   
 
     analyzerBtn.addEventListener("click", function() {
+
+        loadingPanel.style.display = 'block';
 
         const payload = {
             action: "analyze",
@@ -76,8 +73,8 @@
         fetch("http:\/\/localhost:8080", body)
         .then((response) => response.json())
         .then((data) => {
-            sent.innerHTML = url.value;
             received.innerHTML = JSON.stringify(data, undefined, 4);
+            loadingPanel.style.display = 'none';
             if (data.error) {
                 console.log(data.message);
             } else {
@@ -86,6 +83,7 @@
         })
         .catch((error) => {
             output.innerHTML += "<br><br>Erorr: " + error;
+            loadingPanel.style.display = 'none';
         })
     })
         
