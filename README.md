@@ -127,5 +127,6 @@ Open a web browser and go to http://localhost:8080 to test the functionality
 - Add support for analyzing more web page elements (e.g., scripts, images).
 - Provide options for users to customize the analysis (e.g., choose specific elements to analyze).
 - Add more doctypes for analysys.
-- Research different libraries for web scraping.
+- Research different libraries for web scraping to increase performance.
 - Use Swagger to implement API-first approach.
+- Add integration tests.
