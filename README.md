@@ -3,10 +3,12 @@
 A web application that performs an analysis of a webpage/URL.
 
 ### Features
+
 - **Form with Text Field**: Users can type in the URL of the webpage to be analyzed.
 - **Submit Button**: A button to send a request to the server for analysis.
 
 ### Usage
+
 - Enter the URL of the webpage in the text field.
 - Click the submit button to initiate the analysis.
 
@@ -21,31 +23,7 @@ cd webpage-analyzer-service/cmd/api/analyzer/
 go test
 ```
 
-### Srart w/a Docker
-
-Start frontend:
-
--  Go to the "frontend" folder
--  Type "go run ./cmd/web"
--  You should see the following text: "Starting front end service on port 80"
-```sh
-cd frontend
-go run ./cmd/web
-```
-
-Start backend:
-
-- Go to the "webpage-analyzer-service/cmd/api" folder
-- Run the application using "go run main.go"
-- Open a web browser and go to http://localhost:8080 to test the functionality
-```sh
-cd webpage-analyzer-service/cmd/api
-go run main.go
-```
-
-### Srart with Docker
-
-Start frontend:
+### Srart Frontend
 
 - Go to the "project" folder
 - Build the frontend binary:
@@ -63,7 +41,7 @@ make start
 make stop 
 ```
 
-Start backend:
+### Srart Backend
 
 - Go to the "project" folder
 - Build all projects and start docker compose:
