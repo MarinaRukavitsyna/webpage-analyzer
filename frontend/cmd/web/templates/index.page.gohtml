@@ -54,7 +54,7 @@
         .then((data) => {           
             loadingPanel.style.display = 'none';
             if (data.error) {
-                received.innerHTML = "Error from the server: " + data.message + ", error code: "  + data.statusCode;
+                received.innerHTML = "Error from the server: <br />" + data.message + "<br />Error code: "  + data.statusCode;
             } else {
                 received.innerHTML = formatResult(data.analysisResult);
             }
@@ -69,10 +69,11 @@
             return `             
                     <div>HTML Version: ${result.HTMLVersion}</div>               
                     <div>Page Title: ${result.PageTitle}</div>             
-                    <div>Number of Headings: </div>
-                        <ul>
-                            ${Object.entries(result.Headings).map(([key, value]) => `<li>${key}: ${value}</li>`).join('')}
-                        </ul>
+                    <div>Number of Headings:                        
+                        ${Object.keys(result.Headings).length > 0 
+                            ? `<ul>${Object.entries(result.Headings).map(([key, value]) => `<li>${key}: ${value}</li>`).join('')}</ul>` 
+                            : 0}
+                    </div>
                     <div>Number of Internal Links: ${result.NumInternalLinks}</div>                 
                     <div>Number of External Links: ${result.NumExternalLinks}</div>               
                     <div>Number of Inaccessible Links: ${result.NumInaccessibleLinks}</div>
